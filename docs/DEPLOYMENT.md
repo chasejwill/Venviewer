@@ -12,8 +12,9 @@ malformed, or documented placeholder values.
 Public tour canonical metadata is generated from
 `VENVIEWER_LITE_BASE_URL`, so update it whenever the production origin changes.
 Configure branding and player controls with official Kuula export/share
-settings before saving each tour URL; Venviewer Lite does not conceal
-Kuula-owned UI.
+settings before saving each legacy tour URL; Venviewer Lite does not conceal
+Kuula-owned UI. Native tours do not use a Kuula URL. Their panorama files
+belong in `storage/panoramas` and are served only for published native scenes.
 
 ## PostgreSQL migrations
 

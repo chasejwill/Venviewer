@@ -7,6 +7,7 @@ import { SubmitButton } from "@/components/SubmitButton";
 import { getCsrfToken, requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getEnv } from "@/lib/env";
+import { tourProviderLabel } from "@/lib/providers/present";
 import { tourSharing } from "@/lib/sharing";
 
 export const dynamic = "force-dynamic";
@@ -54,6 +55,10 @@ export default async function ToursPage() {
                         <strong>{tour.title}</strong>
                         <br />
                         <code>/{tour.slug}</code>
+                        <br />
+                        <span className="muted">
+                          {tourProviderLabel(tour.provider)}
+                        </span>
                       </td>
                       <td>{tour.published ? "Published" : "Draft"}</td>
                       <td>

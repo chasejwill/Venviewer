@@ -1,5 +1,18 @@
 # Release notes
 
+## 1.1.0 — 2026-10-06
+
+Native runtime foundation:
+
+- Tours record a provider: `legacy-kuula` or `venviewer-native`
+- Existing Kuula tours keep their iframe viewer and public URLs
+- Native tours store scenes and connections without a Kuula URL
+- Shared viewer renders native scenes with a WebGL panorama runtime
+- Viewer shell adds design tokens, loading, error, retry, and fullscreen
+- Published panorama files are served from private storage only when a native
+  scene references them
+- Creating a tour in admin still saves a legacy Kuula tour
+
 ## 1.0.1 — 2026-08-01
 
 - Centered responsive gradient title header on public tour pages
