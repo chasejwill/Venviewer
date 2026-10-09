@@ -25,3 +25,9 @@ the Falls of the Ohio draft and is blocked when `NODE_ENV=production`.
 
 Use `pnpm verify` before release. It checks formatting, lint, strict TypeScript,
 tests, Prisma generation, and a production build.
+
+Native panorama files are not placed in `public/`. For a published native scene
+whose asset id is `/panoramas/lobby.jpg`, store the image at
+`storage/panoramas/lobby.jpg`. The delivery route returns it only while that
+published scene still references the id. Admin tour creation still saves legacy
+Kuula tours; native scene authoring is not part of this release.

@@ -22,11 +22,43 @@ import EmbedTourPage, {
 } from "@/app/embed/[slug]/page";
 
 const tour = {
+  id: "tour_falls",
   title:
     "Falls of the Ohio State Park and Interpretive Center Virtual Tour Experience",
   slug: "falls",
+  provider: "legacy-kuula",
   kuulaUrl: "https://kuula.co/share/abc?mode=1&foo=two",
   published: true,
+  defaultSceneId: null,
+  scenes: [],
+  connections: [],
+};
+
+const nativeTour = {
+  id: "tour_lobby",
+  title: "Lobby",
+  slug: "lobby",
+  provider: "venviewer-native",
+  kuulaUrl: null,
+  published: true,
+  defaultSceneId: "scene_lobby",
+  scenes: [
+    {
+      id: "scene_lobby",
+      title: "Lobby",
+      panoramaAssetId: "/panoramas/lobby.jpg",
+      thumbnailAssetId: null,
+      defaultYaw: 0,
+      defaultPitch: 0,
+      defaultFov: 75,
+      floor: "1",
+      sortOrder: 0,
+      positionX: null,
+      positionY: null,
+      positionZ: null,
+    },
+  ],
+  connections: [],
 };
 
 function markup(node: Awaited<ReturnType<typeof PublicTourPage>>) {
@@ -56,7 +88,13 @@ describe("public and embed routes", () => {
     });
     const html = markup(result);
 
-    expect(findUnique).toHaveBeenCalledWith({ where: { slug: "falls" } });
+    expect(findUnique).toHaveBeenCalledWith({
+      where: { slug: "falls" },
+      include: {
+        scenes: { orderBy: { sortOrder: "asc" } },
+        connections: true,
+      },
+    });
     expect(html.match(/<h1(?:\s|>)/g)).toHaveLength(1);
     expect(html).toContain('class="public-title-header"');
     expect(html).toContain(tour.title);
@@ -162,6 +200,36 @@ describe("public and embed routes", () => {
     expect(html).toContain("unpublished");
     expect(html).not.toContain("<iframe");
     expect(html).not.toContain("public-title-header");
+  });
+
+  it("renders a published native tour without a Kuula frame or provider URL", async () => {
+    findUnique.mockResolvedValue(nativeTour);
+    const result = await PublicTourPage({
+      params: Promise.resolve({ slug: "lobby" }),
+    });
+    const html = markup(result);
+
+    expect(html).toContain('data-provider="venviewer-native"');
+    expect(html).toContain("Loading view");
+    expect(html).toContain("Enter fullscreen");
+    expect(html).toContain(nativeTour.title);
+    expect(html).not.toContain("<iframe");
+    expect(html).not.toContain("kuula.co");
+    expect(html).not.toContain("public-title-header");
+  });
+
+  it("renders a native embed with the same runtime and no public header", async () => {
+    findUnique.mockResolvedValue(nativeTour);
+    const result = await EmbedTourPage({
+      params: Promise.resolve({ slug: "lobby" }),
+    });
+    const html = renderToStaticMarkup(createElement(() => result));
+
+    expect(html).toContain('class="embed-page"');
+    expect(html).toContain('data-provider="venviewer-native"');
+    expect(html).not.toContain("<iframe");
+    expect(html).not.toContain("public-title-header");
+    expect(html).not.toContain("<h1");
   });
 
   it("defines the gradient, viewport layout, long-title wrapping, and no concealment effects", () => {

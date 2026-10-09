@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { TourViewer } from "@/components/TourViewer";
 import { db } from "@/lib/db";
-import { kuulaEmbedUrl } from "@/lib/tours";
+import { presentTour, tourViewerInclude } from "@/lib/providers/present";
 
 type Props = { params: Promise<{ slug: string }> };
 
 async function findTour(slug: string) {
-  return db.tour.findUnique({ where: { slug } });
+  return db.tour.findUnique({ where: { slug }, include: tourViewerInclude });
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -30,9 +30,21 @@ export default async function EmbedTourPage({ params }: Props) {
     );
   }
 
+  const presentation = presentTour(tour);
+  if (!presentation.ok) {
+    return (
+      <main className="embed-unavailable">
+        <div className="card">
+          <h1>Tour unavailable</h1>
+          <p>{presentation.message}</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="embed-page">
-      <TourViewer src={kuulaEmbedUrl(tour.kuulaUrl)} title={tour.title} />
+      <TourViewer presentation={presentation} surface="embed" />
     </main>
   );
 }

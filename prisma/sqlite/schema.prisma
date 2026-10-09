@@ -7,12 +7,62 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// Published tours are either legacy Kuula shares or first-party native tours.
+/// `defaultSceneId` is checked in application code. A database foreign key would
+/// cycle with Scene.tourId.
 model Tour {
-  id        String   @id @default(cuid())
-  title     String
-  slug      String   @unique
-  kuulaUrl  String
-  published Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String            @id @default(cuid())
+  title          String
+  slug           String            @unique
+  provider       String            @default("legacy-kuula")
+  kuulaUrl       String?
+  published      Boolean           @default(false)
+  defaultSceneId String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  scenes         Scene[]
+  connections    SceneConnection[]
+}
+
+model Scene {
+  id               String            @id @default(cuid())
+  tourId           String
+  tour             Tour              @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  title            String
+  panoramaAssetId  String
+  thumbnailAssetId String?
+  defaultYaw       Float             @default(0)
+  defaultPitch     Float             @default(0)
+  defaultFov       Float             @default(75)
+  floor            String?
+  sortOrder        Int               @default(0)
+  positionX        Float?
+  positionY        Float?
+  positionZ        Float?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  outgoing         SceneConnection[] @relation("ConnectionSource")
+  incoming         SceneConnection[] @relation("ConnectionDestination")
+
+  @@index([tourId])
+}
+
+model SceneConnection {
+  id                 String  @id @default(cuid())
+  tourId             String
+  tour               Tour    @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  sourceSceneId      String
+  sourceScene        Scene   @relation("ConnectionSource", fields: [sourceSceneId], references: [id], onDelete: Cascade)
+  destinationSceneId String
+  destinationScene   Scene   @relation("ConnectionDestination", fields: [destinationSceneId], references: [id], onDelete: Cascade)
+  travelHeading      Float?
+  arrivalYaw         Float?
+  arrivalPitch       Float?
+  weight             Float   @default(1)
+  enabled            Boolean @default(true)
+  transitionType     String  @default("cut")
+
+  @@index([tourId])
+  @@index([sourceSceneId])
+  @@index([destinationSceneId])
 }

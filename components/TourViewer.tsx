@@ -1,28 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { LegacyKuulaFrame } from "@/components/viewer/LegacyKuulaFrame";
+import { NativePanoramaView } from "@/components/viewer/NativePanoramaView";
+import type { ViewerPresentation } from "@/lib/providers/present";
 
-export function TourViewer({ src, title }: { src: string; title: string }) {
-  const [loaded, setLoaded] = useState(false);
-
-  return (
-    <div className="viewer-container">
-      {!loaded ? (
-        <div className="viewer-loading" role="status" aria-live="polite">
-          <span>Loading virtual tour…</span>
-        </div>
-      ) : null}
-      <iframe
-        className="viewer"
-        src={src}
-        title={title}
-        width="100%"
-        height="100%"
-        allow="fullscreen; xr-spatial-tracking"
-        allowFullScreen
-        loading="lazy"
-        onLoad={() => setLoaded(true)}
+export function TourViewer({
+  presentation,
+  surface,
+}: {
+  presentation: Extract<ViewerPresentation, { ok: true }>;
+  surface: "public" | "embed";
+}) {
+  if (presentation.provider === "legacy-kuula") {
+    return (
+      <LegacyKuulaFrame
+        src={presentation.embedUrl}
+        title={presentation.title}
       />
-    </div>
+    );
+  }
+  return (
+    <NativePanoramaView
+      title={presentation.title}
+      scenes={presentation.scenes}
+      initialSceneId={presentation.initialSceneId}
+      surface={surface}
+    />
   );
 }

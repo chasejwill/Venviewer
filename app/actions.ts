@@ -17,6 +17,10 @@ import {
   clearLoginFailures,
   recordLoginFailure,
 } from "@/lib/rate-limit";
+import {
+  nativeTourIsPublishable,
+  tourViewerInclude,
+} from "@/lib/providers/present";
 import { parseTourForm } from "@/lib/tours";
 
 export type ActionState = {
@@ -90,7 +94,9 @@ export async function createTourAction(
   if (!result.success) return validationState(result);
 
   try {
-    const tour = await db.tour.create({ data: result.data });
+    const tour = await db.tour.create({
+      data: { ...result.data, provider: "legacy-kuula" },
+    });
     redirect(`/admin/tours/${tour.id}?saved=1`);
   } catch (error) {
     if (
@@ -113,6 +119,13 @@ export async function updateTourAction(
 ): Promise<ActionState> {
   await requireAdmin();
   await verifyCsrf(formData);
+  const existing = await db.tour.findUnique({ where: { id } });
+  if (!existing) return { error: "Tour not found." };
+  if (existing.provider !== "legacy-kuula") {
+    return {
+      error: "Native tours are not edited through the legacy Kuula form.",
+    };
+  }
   const result = parseTourForm(formData);
   if (!result.success) return validationState(result);
 
@@ -140,6 +153,16 @@ export async function togglePublishedAction(
   await requireAdmin();
   await verifyCsrf(formData);
   const current = await db.tour.findUniqueOrThrow({ where: { id } });
+  if (!current.published && current.provider === "venviewer-native") {
+    const full = await db.tour.findUnique({
+      where: { id },
+      include: tourViewerInclude,
+    });
+    if (!full || !nativeTourIsPublishable(full)) {
+      redirect(`/admin/tours/${id}?error=native-unpublished`);
+      return;
+    }
+  }
   await db.tour.update({
     where: { id },
     data: { published: !current.published },

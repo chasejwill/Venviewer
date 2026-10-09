@@ -3,12 +3,12 @@ import { notFound } from "next/navigation";
 import { TourViewer } from "@/components/TourViewer";
 import { db } from "@/lib/db";
 import { getEnv } from "@/lib/env";
-import { kuulaEmbedUrl } from "@/lib/tours";
+import { presentTour, tourViewerInclude } from "@/lib/providers/present";
 
 type Props = { params: Promise<{ slug: string }> };
 
 async function findTour(slug: string) {
-  return db.tour.findUnique({ where: { slug } });
+  return db.tour.findUnique({ where: { slug }, include: tourViewerInclude });
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -45,12 +45,34 @@ export default async function PublicTourPage({ params }: Props) {
     );
   }
 
+  const presentation = presentTour(tour);
+  if (!presentation.ok) {
+    return (
+      <main className="public-tour-page">
+        <header className="public-title-header">
+          <h1>{tour.title}</h1>
+        </header>
+        <section className="public-unavailable" aria-labelledby="tour-status">
+          <p id="tour-status">{presentation.message}</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (presentation.provider === "legacy-kuula") {
+    return (
+      <main className="public-tour-page">
+        <header className="public-title-header">
+          <h1>{tour.title}</h1>
+        </header>
+        <TourViewer presentation={presentation} surface="public" />
+      </main>
+    );
+  }
+
   return (
-    <main className="public-tour-page">
-      <header className="public-title-header">
-        <h1>{tour.title}</h1>
-      </header>
-      <TourViewer src={kuulaEmbedUrl(tour.kuulaUrl)} title={tour.title} />
+    <main className="public-tour-page native-tour-page">
+      <TourViewer presentation={presentation} surface="public" />
     </main>
   );
 }

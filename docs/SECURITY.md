@@ -12,8 +12,13 @@
   each process. Add edge/shared limiting for multi-instance production.
 - Zod validates titles, slugs, and HTTPS Kuula hosts and paths. Reserved route
   slugs cannot be saved; the database enforces slug uniqueness.
-- CSP limits frames to exact `kuula.co` and `www.kuula.co` origins. Other
-  security headers disable MIME sniffing and sensitive browser capabilities.
+- CSP limits frames to exact `kuula.co` and `www.kuula.co` origins for legacy
+  tours. Native tours do not add a third-party frame. Other security headers
+  disable MIME sniffing and sensitive browser capabilities.
+- Native panorama files are read from `storage/panoramas` and are served only
+  when a published `venviewer-native` scene references the asset id. The
+  resolver rejects identities that leave that directory. A draft reference does
+  not make the file downloadable.
 - All ordinary pages deny framing. `/embed/[slug]` deliberately allows framing
   from any site; drafts show an inaccessible state without a Kuula iframe.
 - The Kuula iframe is borderless and fully visible. Venviewer Lite does not use
