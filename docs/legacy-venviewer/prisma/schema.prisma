@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users  User[]
+  tours  Tour[]
+  assets Asset[]
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  passwordHash   String
+  name           String?
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model Tour {
+  id                   String    @id @default(cuid())
+  organizationId       String?
+  title                String
+  slug                 String    @unique
+  description          String?
+  provider             String    @default("kuula")
+  providerTourId       String?
+  providerEmbedUrl     String?
+  providerMetadata     String?
+  status               String    @default("draft")
+  publicViewerUrl      String?
+  embedUrl             String?
+  primaryCtaLabel      String?
+  primaryCtaUrl        String?
+  secondaryCtaLabel    String?
+  secondaryCtaUrl      String?
+  showPoweredByVenview Boolean   @default(true)
+  branding             String?
+  embedPolicy          String    @default("any")
+  embedAllowedDomains  String?
+  integrationEnabled   Boolean   @default(true)
+  publishedAt          DateTime?
+  archivedAt           DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  analytics    TourAnalytics?
+  events       TourEvent[]
+  assets       Asset[]
+}
+
+model Asset {
+  id               String   @id @default(cuid())
+  organizationId   String
+  tourId           String?
+  type             String   @default("panorama")
+  originalFilename String?
+  storageProvider  String
+  bucket           String
+  objectKey        String
+  checksum         String?
+  mimeType         String
+  byteSize         Int
+  width            Int?
+  height           Int?
+  processingStatus String   @default("pending")
+  lifecycleStatus  String   @default("active")
+  visibility       String   @default("private")
+  processingError  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tour         Tour?         @relation(fields: [tourId], references: [id], onDelete: SetNull)
+  variants     AssetVariant[]
+
+  @@index([organizationId, tourId])
+  @@index([processingStatus])
+  @@index([lifecycleStatus])
+}
+
+model AssetVariant {
+  id              String   @id @default(cuid())
+  assetId         String
+  variant         String
+  storageProvider String
+  bucket          String
+  objectKey       String
+  checksum        String?
+  mimeType        String
+  byteSize        Int
+  width           Int?
+  height          Int?
+  createdAt       DateTime @default(now())
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([assetId, variant])
+}
+
+model TourAnalytics {
+  id           String    @id @default(cuid())
+  tourId       String    @unique
+  views        Int       @default(0)
+  uniqueViews  Int       @default(0)
+  embedViews   Int       @default(0)
+  lastViewedAt DateTime?
+  updatedAt    DateTime  @updatedAt
+
+  tour Tour @relation(fields: [tourId], references: [id], onDelete: Cascade)
+}
+
+model TourEvent {
+  id             String   @id @default(cuid())
+  tourId         String
+  type           String
+  surface        String?
+  metadata       String?
+  referrerDomain String?
+  visitorKey     String?
+  createdAt      DateTime @default(now())
+
+  tour Tour @relation(fields: [tourId], references: [id], onDelete: Cascade)
+
+  @@index([tourId, type])
+  @@index([createdAt])
+}
