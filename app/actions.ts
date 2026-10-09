@@ -21,6 +21,8 @@ import {
   nativeTourIsPublishable,
   tourViewerInclude,
 } from "@/lib/providers/present";
+import { deleteAssetObjects } from "@/lib/assets/repository";
+import { parseEmbedSettings } from "@/lib/embed/settings";
 import { parseTourForm } from "@/lib/tours";
 
 export type ActionState = {
@@ -95,7 +97,11 @@ export async function createTourAction(
 
   try {
     const tour = await db.tour.create({
-      data: { ...result.data, provider: "legacy-kuula" },
+      data: {
+        ...result.data,
+        provider: "legacy-kuula",
+        embedPolicy: "venview_only",
+      },
     });
     redirect(`/admin/tours/${tour.id}?saved=1`);
   } catch (error) {
@@ -179,6 +185,36 @@ export async function deleteTourAction(
   if (formData.get("confirm") !== "delete") {
     throw new Error("Deletion was not confirmed.");
   }
+  const assets = await db.asset.findMany({
+    where: { tourId: id },
+    include: { variants: true },
+  });
+  for (const asset of assets) {
+    try {
+      await deleteAssetObjects(asset);
+    } catch {
+      // Asset routes are the ones that fail when R2 is missing. Deleting the
+      // tour still removes the database rows.
+    }
+  }
   await db.tour.delete({ where: { id } });
   redirect("/admin/tours");
+}
+
+export async function updateEmbedSettingsAction(
+  id: string,
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+  await verifyCsrf(formData);
+  const existing = await db.tour.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+  if (!existing) return { error: "Tour not found." };
+  const parsed = parseEmbedSettings(formData);
+  if (!parsed.ok) return { error: parsed.error };
+  await db.tour.update({ where: { id }, data: parsed.data });
+  redirect(`/admin/tours/${id}?saved=1`);
 }

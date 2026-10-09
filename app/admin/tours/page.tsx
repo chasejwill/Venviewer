@@ -16,7 +16,10 @@ export default async function ToursPage() {
   await requireAdmin();
   const [csrf, tours] = await Promise.all([
     getCsrfToken(),
-    db.tour.findMany({ orderBy: { updatedAt: "desc" } }),
+    db.tour.findMany({
+      orderBy: { updatedAt: "desc" },
+      include: { analytics: true },
+    }),
   ]);
   const baseUrl = getEnv().VENVIEWER_LITE_BASE_URL;
 
@@ -42,6 +45,7 @@ export default async function ToursPage() {
                 <tr>
                   <th>Tour</th>
                   <th>Status</th>
+                  <th>Views</th>
                   <th>Links</th>
                   <th>Actions</th>
                 </tr>
@@ -61,6 +65,14 @@ export default async function ToursPage() {
                         </span>
                       </td>
                       <td>{tour.published ? "Published" : "Draft"}</td>
+                      <td>
+                        {tour.analytics?.views ?? 0} views
+                        <br />
+                        <span className="muted">
+                          {tour.analytics?.uniqueViews ?? 0} unique ·{" "}
+                          {tour.analytics?.embedViews ?? 0} embeds
+                        </span>
+                      </td>
                       <td>
                         <div className="actions">
                           <a

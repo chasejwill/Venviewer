@@ -20,6 +20,17 @@ guided playback are not implemented yet.
   the same runtime as the public page.
 - `/panoramas/[...path]` serves a native panorama file only when a published
   native scene references that asset id.
+- `POST /api/tours/[id]/assets/upload`, `GET` and `POST /api/assets/[id]/delivery`,
+  `POST /api/assets/[id]/archive`, and `DELETE /api/assets/[id]/delete` manage
+  private panorama assets. The admin tour page uploads, archives, and deletes
+  through those routes. Production calls fail until R2 is configured; other
+  routes do not.
+- `POST /api/analytics/events` records events for published tours only. Admin
+  lists show per-tour view, unique-view, and embed counts.
+- `GET /api/integration/tours/[slug]` returns `buildVenviewerIntegrationPayload`.
+  The public URL is `/[slug]`.
+- `GET /api/health` pings the database and probes storage without returning
+  secrets.
 - `/admin/login` authenticates the configured administrator email against its
   bcrypt password hash.
 - `/admin/tours`, `/admin/tours/new`, and `/admin/tours/[id]` require a valid
@@ -27,8 +38,10 @@ guided playback are not implemented yet.
   creates legacy Kuula tours. Native scene authoring is not in this release.
 
 PostgreSQL is the production database in `prisma/schema.prisma`. Local SQLite
-schema and migrations live under `prisma/sqlite`. No user or session records
-are stored. Panorama bytes live under `storage/panoramas`, outside `public/`.
+schema and migrations live under `prisma/sqlite`. No user, organization, or
+session records are stored. Native scene files still live under
+`storage/panoramas`. Uploaded assets use the storage driver (local directory
+in development, private R2 in production) and are not placed in `public/`.
 
 ## Request boundaries
 

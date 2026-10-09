@@ -1,10 +1,22 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { AnalyticsBeacon } from "@/components/AnalyticsBeacon";
+import { EmbedBlocked } from "@/components/EmbedBlocked";
 import { TourViewer } from "@/components/TourViewer";
 import { db } from "@/lib/db";
+import { isTourEmbeddable } from "@/lib/embed/enforce";
 import { presentTour, tourViewerInclude } from "@/lib/providers/present";
 
 type Props = { params: Promise<{ slug: string }> };
+
+async function requestReferrer(): Promise<string | null> {
+  try {
+    return (await headers()).get("referer");
+  } catch {
+    return null;
+  }
+}
 
 async function findTour(slug: string) {
   return db.tour.findUnique({ where: { slug }, include: tourViewerInclude });
@@ -30,6 +42,10 @@ export default async function EmbedTourPage({ params }: Props) {
     );
   }
 
+  if (!isTourEmbeddable(tour, await requestReferrer())) {
+    return <EmbedBlocked />;
+  }
+
   const presentation = presentTour(tour);
   if (!presentation.ok) {
     return (
@@ -44,6 +60,7 @@ export default async function EmbedTourPage({ params }: Props) {
 
   return (
     <main className="embed-page">
+      <AnalyticsBeacon tourId={tour.id} type="embed_load" surface="embed" />
       <TourViewer presentation={presentation} surface="embed" />
     </main>
   );

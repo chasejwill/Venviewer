@@ -12,3 +12,4 @@ coverage/
 *.tsbuildinfo
 storage/panoramas/*
 !storage/panoramas/.gitkeep
+storage/venviewer-local/

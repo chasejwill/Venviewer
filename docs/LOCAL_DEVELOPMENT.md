@@ -26,6 +26,12 @@ the Falls of the Ohio draft and is blocked when `NODE_ENV=production`.
 Use `pnpm verify` before release. It checks formatting, lint, strict TypeScript,
 tests, Prisma generation, and a production build.
 
+Asset uploads use local disk unless you set `STORAGE_PROVIDER=r2`. Copy the
+storage variables from `.env.example`, including `VENVIEWER_DELIVERY_SECRET`
+(at least 32 characters). Uploaded objects land under `storage/venviewer-local/`
+and are gitignored. Production is the only environment that refuses asset
+routes when R2 is missing.
+
 Native panorama files are not placed in `public/`. For a published native scene
 whose asset id is `/panoramas/lobby.jpg`, store the image at
 `storage/panoramas/lobby.jpg`. The delivery route returns it only while that

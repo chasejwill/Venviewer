@@ -16,12 +16,25 @@ model Tour {
   slug           String            @unique
   provider       String            @default("legacy-kuula")
   kuulaUrl       String?
-  published      Boolean           @default(false)
-  defaultSceneId String?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  scenes         Scene[]
-  connections    SceneConnection[]
+  published            Boolean           @default(false)
+  defaultSceneId       String?
+  /// New inserts default to venview_only. The migration sets existing rows to any.
+  embedPolicy          String            @default("venview_only")
+  embedAllowedDomains  String?
+  integrationEnabled   Boolean           @default(true)
+  branding             String?
+  primaryCtaLabel      String?
+  primaryCtaUrl        String?
+  secondaryCtaLabel    String?
+  secondaryCtaUrl      String?
+  showPoweredByVenview Boolean           @default(true)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  scenes               Scene[]
+  connections          SceneConnection[]
+  assets               Asset[]
+  analytics            TourAnalytics?
+  events               TourEvent[]
 }
 
 model Scene {
@@ -65,4 +78,76 @@ model SceneConnection {
   @@index([tourId])
   @@index([sourceSceneId])
   @@index([destinationSceneId])
+}
+
+/// Private panorama (or other) bytes for one tour. There is no Organization table.
+model Asset {
+  id               String         @id @default(cuid())
+  tourId           String
+  tour             Tour           @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  type             String         @default("panorama")
+  originalFilename String?
+  storageProvider  String
+  bucket           String
+  objectKey        String
+  checksum         String?
+  mimeType         String
+  byteSize         Int
+  width            Int?
+  height           Int?
+  processingStatus String         @default("pending")
+  lifecycleStatus  String         @default("active")
+  visibility       String         @default("private")
+  processingError  String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  variants         AssetVariant[]
+
+  @@index([tourId])
+  @@index([processingStatus])
+  @@index([lifecycleStatus])
+}
+
+model AssetVariant {
+  id              String   @id @default(cuid())
+  assetId         String
+  asset           Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  variant         String
+  storageProvider String
+  bucket          String
+  objectKey       String
+  checksum        String?
+  mimeType        String
+  byteSize        Int
+  width           Int?
+  height          Int?
+  createdAt       DateTime @default(now())
+
+  @@unique([assetId, variant])
+}
+
+model TourAnalytics {
+  id           String    @id @default(cuid())
+  tourId       String    @unique
+  tour         Tour      @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  views        Int       @default(0)
+  uniqueViews  Int       @default(0)
+  embedViews   Int       @default(0)
+  lastViewedAt DateTime?
+  updatedAt    DateTime  @updatedAt
+}
+
+model TourEvent {
+  id             String   @id @default(cuid())
+  tourId         String
+  tour           Tour     @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  type           String
+  surface        String?
+  metadata       String?
+  referrerDomain String?
+  visitorKey     String?
+  createdAt      DateTime @default(now())
+
+  @@index([tourId, type])
+  @@index([createdAt])
 }

@@ -5,18 +5,19 @@ import {
   SESSION_COOKIE,
   verifySession,
 } from "@/lib/auth";
+import { frameAncestorsForEmbedPath } from "@/lib/embed/request-policy";
 import { getEnv } from "@/lib/env";
 
 function applyResponseSecurity(
   response: NextResponse,
   {
     csp,
-    isEmbed,
+    frameAncestors,
     existingCsrfToken,
     csrfToken,
   }: {
     csp: string;
-    isEmbed: boolean;
+    frameAncestors: string;
     existingCsrfToken: string | undefined;
     csrfToken: string;
   },
@@ -28,7 +29,9 @@ function applyResponseSecurity(
     "Permissions-Policy",
     "camera=(), microphone=(), geolocation=()",
   );
-  if (!isEmbed) response.headers.set("X-Frame-Options", "DENY");
+  if (frameAncestors === "'none'") {
+    response.headers.set("X-Frame-Options", "DENY");
+  }
 
   if (!existingCsrfToken) {
     response.cookies.set(CSRF_COOKIE, csrfToken, {
@@ -41,7 +44,7 @@ function applyResponseSecurity(
   return response;
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const existingCsrfToken = request.cookies.get(CSRF_COOKIE)?.value;
   const csrfToken = existingCsrfToken ?? newCsrfToken();
   const requestHeaders = new Headers(request.headers);
@@ -49,6 +52,12 @@ export function proxy(request: NextRequest) {
 
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const isEmbed = request.nextUrl.pathname.startsWith("/embed/");
+  const frameAncestors = isEmbed
+    ? await frameAncestorsForEmbedPath(
+        request.nextUrl.pathname,
+        getEnv().VENVIEWER_LITE_BASE_URL,
+      )
+    : "'none'";
   const csp = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
@@ -57,7 +66,7 @@ export function proxy(request: NextRequest) {
     "font-src 'self'",
     "connect-src 'self'",
     "frame-src https://kuula.co https://www.kuula.co",
-    `frame-ancestors ${isEmbed ? "*" : "'none'"}`,
+    `frame-ancestors ${frameAncestors}`,
     "base-uri 'self'",
     "form-action 'self'",
     "object-src 'none'",
@@ -79,14 +88,14 @@ export function proxy(request: NextRequest) {
     if (!session) {
       return applyResponseSecurity(
         NextResponse.redirect(new URL("/admin/login", request.url)),
-        { csp, isEmbed, existingCsrfToken, csrfToken },
+        { csp, frameAncestors, existingCsrfToken, csrfToken },
       );
     }
   }
 
   return applyResponseSecurity(
     NextResponse.next({ request: { headers: requestHeaders } }),
-    { csp, isEmbed, existingCsrfToken, csrfToken },
+    { csp, frameAncestors, existingCsrfToken, csrfToken },
   );
 }
 
