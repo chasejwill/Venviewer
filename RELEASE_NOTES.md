@@ -20,12 +20,12 @@ Native runtime foundation:
   wrapper bar
 - Canonical public metadata, useful descriptions, and draft `noindex`
 - Explicit iframe ownership guidance: Kuula UI is configured through official
-  Kuula export/share settings and is not concealed by Venviewer Lite
+  Kuula export/share settings and is not concealed by Venviewer
 - Expanded route, presentation, iframe, metadata, and framing tests
 
 ## 1.0.0 — 2026-07-31
 
-Initial Venviewer Lite release:
+Initial Venviewer release:
 
 - Published and draft Kuula tours with validated unique slugs
 - Public and embeddable responsive viewers

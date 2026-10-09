@@ -21,7 +21,7 @@
   not make the file downloadable.
 - All ordinary pages deny framing. `/embed/[slug]` deliberately allows framing
   from any site; drafts show an inaccessible state without a Kuula iframe.
-- The Kuula iframe is borderless and fully visible. Venviewer Lite does not use
+- The Kuula iframe is borderless and fully visible. Venviewer does not use
   masks, clipping, blur, overlays, or URL rewriting to conceal Kuula branding
   or controls. Configure those through official Kuula export/share settings and
   store the resulting validated URL.

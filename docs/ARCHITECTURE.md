@@ -1,6 +1,6 @@
 # Architecture
 
-Venviewer Lite is one Next.js App Router application. Server components read
+Venviewer is one Next.js App Router application. Server components read
 Prisma directly; server actions own every mutation. Client components cover
 form state, clipboard interaction, and the panorama viewer runtime.
 
@@ -41,7 +41,7 @@ streaming. Public metadata uses `VENVIEWER_LITE_BASE_URL` for its canonical URL;
 drafts are marked `noindex` and return a clear inaccessible state without a
 player.
 
-Legacy Kuula tours remain cross-origin iframes. Venviewer Lite neither inspects
+Legacy Kuula tours remain cross-origin iframes. Venviewer neither inspects
 nor conceals content inside that frame. Configure Kuula-owned UI through
 official Kuula export/share settings, then store the resulting share URL on the
 tour. Native tours render on a Venviewer-owned WebGL canvas. Camera yaw, pitch,

@@ -3,8 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Venviewer Lite",
-    template: "%s | Venviewer Lite",
+    default: "Venviewer",
+    template: "%s | Venviewer",
   },
   description: "A focused virtual tour viewer.",
 };
