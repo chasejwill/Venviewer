@@ -94,6 +94,9 @@ describe("admin action authorization", () => {
     await expect(createTourAction({}, data)).resolves.toMatchObject({
       fields: { slug: ["Choose a unique slug."] },
     });
+    expect(create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ embedPolicy: "venview_only" }),
+    });
   });
 
   it("does not write a Kuula URL onto a native tour", async () => {

@@ -19,8 +19,16 @@
   when a published `venviewer-native` scene references the asset id. The
   resolver rejects identities that leave that directory. A draft reference does
   not make the file downloadable.
-- All ordinary pages deny framing. `/embed/[slug]` deliberately allows framing
-  from any site; drafts show an inaccessible state without a Kuula iframe.
+- All ordinary pages deny framing. `/embed/[slug]` sets `Content-Security-Policy`
+  `frame-ancestors` from the tour's embed policy. Existing tours stay `any`
+  (any site). New tours default to `venview_only` for venview.co,
+  www.venview.co, and tour.venview.co. Approved-domain and disabled policies
+  are available in admin. A disallowed referrer renders an embed block instead
+  of the viewer. Drafts show an inaccessible state without a player.
+- Panorama uploads are private. Delivery requires an admin session or a
+  short-lived HMAC token signed with `VENVIEWER_DELIVERY_SECRET`. Archive and
+  delete are admin-only. In production those routes refuse to run until R2 is
+  configured. They do not fall back to local disk.
 - The Kuula iframe is borderless and fully visible. Venviewer does not use
   masks, clipping, blur, overlays, or URL rewriting to conceal Kuula branding
   or controls. Configure those through official Kuula export/share settings and

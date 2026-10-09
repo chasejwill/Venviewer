@@ -165,3 +165,56 @@ export function isAllowedCsrfOrigin(
 export function newCsrfToken(): string {
   return randomBytes(32).toString("base64url");
 }
+
+export class AdminAuthError extends Error {
+  readonly status: 401 | 403;
+
+  constructor(message: string, status: 401 | 403) {
+    super(message);
+    this.name = "AdminAuthError";
+    this.status = status;
+  }
+}
+
+/** Session plus CSRF, for admin form posts to route handlers. */
+export async function authorizeAdminForm(
+  formData: FormData,
+): Promise<SessionPayload> {
+  const session = await getSession();
+  if (!session) {
+    throw new AdminAuthError("Authentication required.", 401);
+  }
+  try {
+    await verifyCsrf(formData);
+  } catch {
+    throw new AdminAuthError("Invalid request.", 403);
+  }
+  return session;
+}
+
+/** Session plus CSRF header, for admin API calls that are not HTML forms. */
+export async function authorizeAdminHeader(
+  request: Request,
+): Promise<SessionPayload> {
+  const session = await getSession();
+  if (!session) {
+    throw new AdminAuthError("Authentication required.", 401);
+  }
+  const supplied = request.headers.get("x-csrf-token");
+  const expected = (await cookies()).get(CSRF_COOKIE)?.value;
+  const requestHeaders = await headers();
+  const env = getEnv();
+  const originMatches = isAllowedCsrfOrigin(
+    request.headers.get("origin") ?? requestHeaders.get("origin"),
+    env.VENVIEWER_LITE_BASE_URL,
+    {
+      isVercel: process.env.VERCEL === "1",
+      forwardedHost: requestHeaders.get("x-forwarded-host"),
+      forwardedProto: requestHeaders.get("x-forwarded-proto"),
+    },
+  );
+  if (!supplied || !expected || !equal(supplied, expected) || !originMatches) {
+    throw new AdminAuthError("Invalid request.", 403);
+  }
+  return session;
+}

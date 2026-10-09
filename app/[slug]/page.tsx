@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { AnalyticsBeacon } from "@/components/AnalyticsBeacon";
 import { TourViewer } from "@/components/TourViewer";
 import { db } from "@/lib/db";
 import { getEnv } from "@/lib/env";
@@ -65,6 +66,7 @@ export default async function PublicTourPage({ params }: Props) {
         <header className="public-title-header">
           <h1>{tour.title}</h1>
         </header>
+        <AnalyticsBeacon tourId={tour.id} type="viewer_load" surface="viewer" />
         <TourViewer presentation={presentation} surface="public" />
       </main>
     );
@@ -72,6 +74,7 @@ export default async function PublicTourPage({ params }: Props) {
 
   return (
     <main className="public-tour-page native-tour-page">
+      <AnalyticsBeacon tourId={tour.id} type="viewer_load" surface="viewer" />
       <TourViewer presentation={presentation} surface="public" />
     </main>
   );
