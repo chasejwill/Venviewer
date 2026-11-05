@@ -18,9 +18,8 @@ Requirements: Node.js 22+, pnpm 11+, and SQLite.
 ```sh
 cp .env.example .env
 pnpm install
-# Pipe your password without storing plaintext in the application:
-printf '%s' 'your-long-password' | pnpm auth:hash-password
-# Replace every placeholder in .env, including the generated hash
+# Set VENVIEWER_LITE_ADMIN_PASSWORD in .env (at least 12 characters).
+# Replace every other placeholder.
 pnpm db:migrate
 pnpm dev
 ```

@@ -1,5 +1,9 @@
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { compare } from "bcryptjs";
+import {
+  createHash,
+  createHmac,
+  randomBytes,
+  timingSafeEqual,
+} from "node:crypto";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getEnv } from "@/lib/env";
@@ -17,6 +21,12 @@ function equal(left: string, right: string): boolean {
   const a = Buffer.from(left);
   const b = Buffer.from(right);
   return a.length === b.length && timingSafeEqual(a, b);
+}
+
+function passwordMatches(supplied: string, expected: string): boolean {
+  const left = createHash("sha256").update(supplied, "utf8").digest();
+  const right = createHash("sha256").update(expected, "utf8").digest();
+  return timingSafeEqual(left, right);
 }
 
 function signature(payload: string, secret: string): string {
@@ -59,11 +69,11 @@ export async function credentialsAreValid(
   email: string,
   password: string,
   expectedEmail: string,
-  expectedPasswordHash: string,
+  expectedPassword: string,
 ): Promise<boolean> {
   const emailMatches = equal(email.toLowerCase(), expectedEmail.toLowerCase());
-  const passwordMatches = await compare(password, expectedPasswordHash);
-  return emailMatches && passwordMatches;
+  const suppliedPasswordMatches = passwordMatches(password, expectedPassword);
+  return emailMatches && suppliedPasswordMatches;
 }
 
 export async function createSession(): Promise<void> {

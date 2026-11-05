@@ -1,7 +1,10 @@
 # Security
 
-- The admin email, bcrypt password hash, and session signing secret come only
-  from environment variables. Plaintext passwords are never configured.
+- The admin email, password, and session signing secret come only from
+  environment variables. Set `VENVIEWER_LITE_ADMIN_PASSWORD` to the password
+  used at login (at least 12 characters). It is read when the login form is
+  submitted, compared without a separate stored hash, and not written to the
+  database. Page builds do not require it.
 - Session cookies are HMAC-signed, expire after eight hours, and use HttpOnly,
   SameSite=Strict, Path=/, and Secure in production.
 - Every mutation checks the session on the server. CSRF defenses combine a
@@ -28,4 +31,6 @@
 
 Use HTTPS, rotate credentials when exposure is suspected, patch dependencies,
 and restrict access to deployment secrets and database backups. There is no
-password reset workflow: update the environment credentials and restart.
+password reset workflow: set `VENVIEWER_LITE_ADMIN_PASSWORD` and restart or
+redeploy. Existing sessions stay valid until they expire or
+`VENVIEWER_LITE_SESSION_SECRET` is rotated.

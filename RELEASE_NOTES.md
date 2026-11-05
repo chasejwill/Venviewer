@@ -1,5 +1,16 @@
 # Release notes
 
+## 1.1.1 — 2026-11-05
+
+Admin login uses a regular password:
+
+- Set `VENVIEWER_LITE_ADMIN_PASSWORD` (at least 12 characters) instead of a
+  bcrypt hash
+- `VENVIEWER_LITE_ADMIN_PASSWORD_HASH` and `pnpm auth:hash-password` are removed
+- The build no longer reads the admin password, so removing the old hash does
+  not fail the next deployment of this release
+- Existing sessions stay valid until they expire or the session secret changes
+
 ## 1.1.0 — 2026-10-06
 
 Native runtime foundation:

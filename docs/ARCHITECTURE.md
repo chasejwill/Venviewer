@@ -20,8 +20,7 @@ guided playback are not implemented yet.
   the same runtime as the public page.
 - `/panoramas/[...path]` serves a native panorama file only when a published
   native scene references that asset id.
-- `/admin/login` authenticates the configured administrator email against its
-  bcrypt password hash.
+- `/admin/login` authenticates the configured administrator email and password.
 - `/admin/tours`, `/admin/tours/new`, and `/admin/tours/[id]` require a valid
   server-checked session. `/admin` redirects to the list. The admin form still
   creates legacy Kuula tours. Native scene authoring is not in this release.

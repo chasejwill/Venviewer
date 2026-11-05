@@ -11,7 +11,7 @@ import {
   verifyCsrf,
 } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { getEnv } from "@/lib/env";
+import { getAdminPassword, getEnv } from "@/lib/env";
 import {
   checkLoginRateLimit,
   clearLoginFailures,
@@ -55,7 +55,7 @@ export async function loginAction(
       email,
       password,
       env.VENVIEWER_LITE_ADMIN_EMAIL,
-      env.VENVIEWER_LITE_ADMIN_PASSWORD_HASH,
+      getAdminPassword(),
     ))
   ) {
     recordLoginFailure(key);
