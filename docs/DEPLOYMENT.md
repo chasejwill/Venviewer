@@ -6,8 +6,11 @@ production.
 
 Set `VENVIEWER_LITE_DEPLOY_ENV=production`,
 `VENVIEWER_LITE_BASE_URL` to the canonical HTTPS origin, and provide a valid
-email, bcrypt password hash, and random session secret. Startup rejects missing,
-malformed, or documented placeholder values.
+email, admin password of at least 12 characters
+(`VENVIEWER_LITE_ADMIN_PASSWORD`), and random session secret. Startup rejects
+missing, too-short, or documented placeholder values. On an existing deploy,
+set the new password variable for Production and Preview, redeploy, then remove
+the unused `VENVIEWER_LITE_ADMIN_PASSWORD_HASH` variable.
 
 Public tour canonical metadata is generated from
 `VENVIEWER_LITE_BASE_URL`, so update it whenever the production origin changes.

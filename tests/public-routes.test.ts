@@ -73,8 +73,7 @@ describe("public and embed routes", () => {
       "postgresql://user:pass@localhost:5432/venviewer";
     process.env.VENVIEWER_LITE_BASE_URL = "https://viewer.example";
     process.env.VENVIEWER_LITE_ADMIN_EMAIL = "admin@viewer.example";
-    process.env.VENVIEWER_LITE_ADMIN_PASSWORD_HASH =
-      "$2b$04$pJN3Lr.cBFuTYl9hzXlCYunQ3PTa56wUMMAq8b5Im8qaYe2PW1O3i";
+    process.env.VENVIEWER_LITE_ADMIN_PASSWORD = "correct-password";
     process.env.VENVIEWER_LITE_SESSION_SECRET =
       "route-test-session-secret-at-least-32-characters";
     process.env.VENVIEWER_LITE_DEPLOY_ENV = "test";

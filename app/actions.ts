@@ -55,7 +55,7 @@ export async function loginAction(
       email,
       password,
       env.VENVIEWER_LITE_ADMIN_EMAIL,
-      env.VENVIEWER_LITE_ADMIN_PASSWORD_HASH,
+      env.VENVIEWER_LITE_ADMIN_PASSWORD,
     ))
   ) {
     recordLoginFailure(key);

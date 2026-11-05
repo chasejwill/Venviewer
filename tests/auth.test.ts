@@ -1,4 +1,3 @@
-import { hash } from "bcryptjs";
 import { describe, expect, it } from "vitest";
 import {
   credentialsAreValid,
@@ -10,14 +9,14 @@ import {
 const secret = "a-secure-session-secret-that-is-long-enough";
 
 describe("authentication and sessions", () => {
-  it("asynchronously verifies the email and bcrypt password hash", async () => {
-    const passwordHash = await hash("correct-password", 4);
+  it("verifies the configured email and password", async () => {
+    const password = "correct-password";
     await expect(
       credentialsAreValid(
         "ADMIN@example.com",
-        "correct-password",
+        password,
         "admin@example.com",
-        passwordHash,
+        password,
       ),
     ).resolves.toBe(true);
     await expect(
@@ -25,15 +24,23 @@ describe("authentication and sessions", () => {
         "admin@example.com",
         "wrong-password",
         "admin@example.com",
-        passwordHash,
+        password,
+      ),
+    ).resolves.toBe(false);
+    await expect(
+      credentialsAreValid(
+        "admin@example.com",
+        "nope",
+        "admin@example.com",
+        password,
       ),
     ).resolves.toBe(false);
     await expect(
       credentialsAreValid(
         "other@example.com",
-        "correct-password",
+        password,
         "admin@example.com",
-        passwordHash,
+        password,
       ),
     ).resolves.toBe(false);
   });

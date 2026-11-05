@@ -5,8 +5,7 @@ const valid = {
   DATABASE_URL: "file:./dev.db",
   VENVIEWER_LITE_BASE_URL: "http://localhost:3000",
   VENVIEWER_LITE_ADMIN_EMAIL: "admin@venviewer.test",
-  VENVIEWER_LITE_ADMIN_PASSWORD_HASH:
-    "$2b$04$pJN3Lr.cBFuTYl9hzXlCYunQ3PTa56wUMMAq8b5Im8qaYe2PW1O3i",
+  VENVIEWER_LITE_ADMIN_PASSWORD: "correct-password",
   VENVIEWER_LITE_SESSION_SECRET: "12345678901234567890123456789012",
   VENVIEWER_LITE_DEPLOY_ENV: "test",
   NODE_ENV: "test",
@@ -23,23 +22,29 @@ describe("environment validation", () => {
     "DATABASE_URL",
     "VENVIEWER_LITE_BASE_URL",
     "VENVIEWER_LITE_ADMIN_EMAIL",
-    "VENVIEWER_LITE_ADMIN_PASSWORD_HASH",
+    "VENVIEWER_LITE_ADMIN_PASSWORD",
     "VENVIEWER_LITE_SESSION_SECRET",
     "VENVIEWER_LITE_DEPLOY_ENV",
   ])("rejects missing %s", (key) => {
     expect(() => validateEnv({ ...valid, [key]: undefined })).toThrow();
   });
 
-  it("rejects invalid email, password hash, secret, and base URL", () => {
+  it("rejects invalid email, short password, secret, and base URL", () => {
     expect(() =>
       validateEnv({ ...valid, VENVIEWER_LITE_ADMIN_EMAIL: "not-an-email" }),
     ).toThrow();
     expect(() =>
       validateEnv({
         ...valid,
-        VENVIEWER_LITE_ADMIN_PASSWORD_HASH: "plaintext",
+        VENVIEWER_LITE_ADMIN_PASSWORD: "short-pass",
       }),
     ).toThrow();
+    expect(
+      validateEnv({
+        ...valid,
+        VENVIEWER_LITE_ADMIN_PASSWORD: "123456789012",
+      }).VENVIEWER_LITE_ADMIN_PASSWORD,
+    ).toBe("123456789012");
     expect(() =>
       validateEnv({ ...valid, VENVIEWER_LITE_SESSION_SECRET: "short" }),
     ).toThrow();
@@ -59,6 +64,16 @@ describe("environment validation", () => {
         VENVIEWER_LITE_SESSION_SECRET: undefined,
       }),
     ).toThrow();
+  });
+
+  it("rejects a placeholder admin password in production", () => {
+    expect(() =>
+      validateEnv({
+        ...valid,
+        VENVIEWER_LITE_DEPLOY_ENV: "production",
+        VENVIEWER_LITE_ADMIN_PASSWORD: "replace-with-a-long-password",
+      }),
+    ).toThrow(/VENVIEWER_LITE_ADMIN_PASSWORD/);
   });
 
   it("rejects documented placeholders in production", () => {
