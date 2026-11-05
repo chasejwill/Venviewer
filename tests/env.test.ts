@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateEnv } from "@/lib/env";
+import { getAdminPassword, validateEnv } from "@/lib/env";
 
 const valid = {
   DATABASE_URL: "file:./dev.db",
@@ -22,7 +22,6 @@ describe("environment validation", () => {
     "DATABASE_URL",
     "VENVIEWER_LITE_BASE_URL",
     "VENVIEWER_LITE_ADMIN_EMAIL",
-    "VENVIEWER_LITE_ADMIN_PASSWORD",
     "VENVIEWER_LITE_SESSION_SECRET",
     "VENVIEWER_LITE_DEPLOY_ENV",
   ])("rejects missing %s", (key) => {
@@ -34,17 +33,23 @@ describe("environment validation", () => {
       validateEnv({ ...valid, VENVIEWER_LITE_ADMIN_EMAIL: "not-an-email" }),
     ).toThrow();
     expect(() =>
-      validateEnv({
+      getAdminPassword({
         ...valid,
         VENVIEWER_LITE_ADMIN_PASSWORD: "short-pass",
       }),
     ).toThrow();
     expect(
-      validateEnv({
+      getAdminPassword({
         ...valid,
         VENVIEWER_LITE_ADMIN_PASSWORD: "123456789012",
-      }).VENVIEWER_LITE_ADMIN_PASSWORD,
+      }),
     ).toBe("123456789012");
+    expect(() =>
+      getAdminPassword({
+        ...valid,
+        VENVIEWER_LITE_ADMIN_PASSWORD: undefined,
+      }),
+    ).toThrow();
     expect(() =>
       validateEnv({ ...valid, VENVIEWER_LITE_SESSION_SECRET: "short" }),
     ).toThrow();
@@ -66,9 +71,16 @@ describe("environment validation", () => {
     ).toThrow();
   });
 
+  it("loads page configuration when the admin password is absent", () => {
+    expect(
+      validateEnv({ ...valid, VENVIEWER_LITE_ADMIN_PASSWORD: undefined })
+        .VENVIEWER_LITE_ADMIN_EMAIL,
+    ).toBe("admin@venviewer.test");
+  });
+
   it("rejects a placeholder admin password in production", () => {
     expect(() =>
-      validateEnv({
+      getAdminPassword({
         ...valid,
         VENVIEWER_LITE_DEPLOY_ENV: "production",
         VENVIEWER_LITE_ADMIN_PASSWORD: "replace-with-a-long-password",

@@ -29,9 +29,6 @@ const envSchema = z
     DATABASE_URL: z.string().min(1),
     VENVIEWER_LITE_BASE_URL: baseUrlSchema,
     VENVIEWER_LITE_ADMIN_EMAIL: z.email(),
-    VENVIEWER_LITE_ADMIN_PASSWORD: z
-      .string()
-      .min(12, "Must be at least 12 characters."),
     VENVIEWER_LITE_SESSION_SECRET: z.string().min(32),
     VENVIEWER_LITE_DEPLOY_ENV: z.enum(["development", "test", "production"]),
     NODE_ENV: z
@@ -44,7 +41,6 @@ const envSchema = z
     const protectedValues = [
       ["VENVIEWER_LITE_BASE_URL", env.VENVIEWER_LITE_BASE_URL],
       ["VENVIEWER_LITE_ADMIN_EMAIL", env.VENVIEWER_LITE_ADMIN_EMAIL],
-      ["VENVIEWER_LITE_ADMIN_PASSWORD", env.VENVIEWER_LITE_ADMIN_PASSWORD],
       ["VENVIEWER_LITE_SESSION_SECRET", env.VENVIEWER_LITE_SESSION_SECRET],
     ] as const;
     for (const [name, value] of protectedValues) {
@@ -69,8 +65,29 @@ export function getEnv(): AppEnv {
   return cached;
 }
 
+const adminPasswordSchema = z
+  .string()
+  .min(12, "Must be at least 12 characters.");
+
 export function validateEnv(input: Record<string, string | undefined>): AppEnv {
   return envSchema.parse(input);
+}
+
+export function getAdminPassword(
+  input: Record<string, string | undefined> = process.env,
+): string {
+  const password = adminPasswordSchema.parse(
+    input.VENVIEWER_LITE_ADMIN_PASSWORD,
+  );
+  if (
+    input.VENVIEWER_LITE_DEPLOY_ENV === "production" &&
+    PLACEHOLDER_PATTERN.test(password)
+  ) {
+    throw new Error(
+      "VENVIEWER_LITE_ADMIN_PASSWORD cannot use a documented placeholder in production.",
+    );
+  }
+  return password;
 }
 
 export function resetEnvCacheForTests(): void {
